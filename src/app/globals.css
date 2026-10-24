@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+/* Design tokens — docs/SPEC.md §10.2 */
+:root {
+  /* Custom curves; the built-in CSS easings are too weak. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --dur-press: 140ms;
+  --dur-fast: 180ms;
+  --dur-base: 220ms;
+  --dur-slow: 300ms;
+
+  --bg: oklch(0.985 0.002 260);
+  --surface: oklch(1 0 0);
+  --fg: oklch(0.21 0.01 260);
+  --fg-muted: oklch(0.52 0.012 260);
+  --border: oklch(0.21 0.01 260 / 0.08);
+  --hover: oklch(0.21 0.01 260 / 0.04);
+  --shadow-card:
+    0 0 0 1px var(--border), 0 1px 2px oklch(0 0 0 / 0.04),
+    0 4px 12px oklch(0 0 0 / 0.04);
+
+  --positive: oklch(0.56 0.13 155);
+  --warning: oklch(0.66 0.14 65);
+  --negative: oklch(0.56 0.17 25);
+
+  --accent: oklch(0.55 0.11 160);
+  --accent-soft: oklch(0.55 0.11 160 / 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: oklch(0.17 0.006 260);
+    --surface: oklch(0.21 0.007 260);
+    --fg: oklch(0.96 0.003 260);
+    --fg-muted: oklch(0.7 0.01 260);
+    --border: oklch(1 0 0 / 0.08);
+    --hover: oklch(1 0 0 / 0.05);
+    /* Raised surfaces get lighter instead of relying on shadows. */
+    --shadow-card: 0 0 0 1px var(--border);
+
+    --positive: oklch(0.72 0.14 155);
+    --warning: oklch(0.78 0.13 70);
+    --negative: oklch(0.7 0.16 25);
+  }
+}
+
+[data-mode="family"] {
+  --accent: oklch(0.55 0.11 160);
+  --accent-soft: oklch(0.55 0.11 160 / 0.1);
+}
+
+[data-mode="business"] {
+  --accent: oklch(0.52 0.15 255);
+  --accent-soft: oklch(0.52 0.15 255 / 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-mode="family"] {
+    --accent: oklch(0.74 0.12 160);
+    --accent-soft: oklch(0.74 0.12 160 / 0.14);
+  }
+
+  [data-mode="business"] {
+    --accent: oklch(0.72 0.13 255);
+    --accent-soft: oklch(0.72 0.13 255 / 0.14);
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-border: var(--border);
+  --color-hover: var(--hover);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-positive: var(--positive);
+  --color-warning: var(--warning);
+  --color-negative: var(--negative);
+  --shadow-card: var(--shadow-card);
+  --font-sans: var(--font-heebo), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Native-feel defaults — SPEC §14 */
+button,
+a {
+  touch-action: manipulation;
+}
+
+button {
+  user-select: none;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font-size: max(16px, 1em);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Press feedback for anything tappable. */
+.pressable {
+  transition: transform var(--dur-press) var(--ease-out);
+}
+
+.pressable:active {
+  transform: scale(0.97);
+}
+
+/* Content enter after a pointer-initiated mode switch — SPEC §3.2. The blur
+   bridges old and new content so the eye reads one change, not two. */
+@keyframes mode-enter {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+    transform: translateY(4px);
+  }
+}
+
+.mode-enter {
+  animation: mode-enter var(--dur-base) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes mode-enter-reduced {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .mode-enter {
+    animation: mode-enter-reduced 150ms ease;
+  }
+
+  .pressable:active {
+    transform: none;
+  }
+}

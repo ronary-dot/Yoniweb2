@@ -526,7 +526,7 @@ html[data-mode='business'] { --accent: oklch(0.55 0.14 255); }
 
 - **Next.js** (App Router, הגרסה היציבה האחרונה) + **TypeScript** strict
 - **Tailwind CSS v4** (טוקנים ב-`@theme`)
-- **pnpm**
+- **npm**
 - **Vitest** (לוגיקה: חישובי תזרים, תקציבים, seed) + **Playwright** (זרימות מרכזיות)
 - ESLint + Prettier
 
@@ -550,17 +550,12 @@ yoniweb2/
 │   │   ├── page.tsx                # redirect למצב האחרון
 │   │   ├── welcome/page.tsx        # מסך פתיחה + "טען נתוני דמו"
 │   │   ├── settings/page.tsx
-│   │   └── [mode]/
-│   │       ├── layout.tsx          # Shell: Sidebar/BottomNav, ModeSwitch, data-mode
-│   │       ├── page.tsx            # Dashboard (מרכיב לפי mode)
-│   │       ├── transactions/page.tsx
-│   │       ├── budgets/page.tsx
-│   │       ├── goals/page.tsx
-│   │       ├── reports/page.tsx
-│   │       ├── clients/page.tsx    # notFound() אם mode !== business
-│   │       ├── cashflow/page.tsx   # עסק בלבד
-│   │       ├── activities/page.tsx # משפחה בלבד
-│   │       └── shopping/page.tsx   # משפחה בלבד
+│   │   └── (app)/
+│   │       ├── layout.tsx          # AppShell משותף: Sidebar/BottomNav, ModeSwitch, data-mode
+│   │       ├── family/             # page.tsx (דשבורד), transactions, budgets, goals, reports,
+│   │       │                       # activities, shopping — דפים דקים שמרכיבים רכיבים משותפים
+│   │       └── business/           # page.tsx (דשבורד), transactions, budgets, goals, reports,
+│   │                               # cashflow, clients
 │   ├── components/
 │   │   ├── ui/                     # רכיבי בסיס (Button, Card, Money...)
 │   │   ├── shell/                  # Sidebar, BottomNav, ModeSwitch, CommandMenu, DemoBanner
@@ -594,10 +589,11 @@ yoniweb2/
 ### 13.4 פריסה
 
 1. ייבוא הריפו ב-Vercel → Framework מזוהה אוטומטית כ-Next.js. אין צורך ב-`vercel.json`.
-2. כל Pull Request מקבל Preview Deployment — כולל דמו חי לבדיקה.
-3. `main` → Production.
-4. דפים סטטיים ככל האפשר (Shell נטען מ-CDN); הנתונים נטענים בצד לקוח בשלב 1, ולכן אין צורך ב-runtime של שרת.
-5. Vercel Analytics + Speed Insights (חינמי ברמת Hobby) למדידת ביצועים.
+2. תיקיות סטטיות `family/` ו-`business/` (ולא סגמנט דינמי `[mode]`), כך שכל הדפים מרונדרים מראש כסטטיים ומסכים ייעודיים קיימים רק במצב שלהם.
+3. כל Pull Request מקבל Preview Deployment — כולל דמו חי לבדיקה.
+4. `main` → Production.
+5. דפים סטטיים ככל האפשר (Shell נטען מ-CDN); הנתונים נטענים בצד לקוח בשלב 1, ולכן אין צורך ב-runtime של שרת.
+6. Vercel Analytics + Speed Insights (חינמי ברמת Hobby) למדידת ביצועים.
 
 ### 13.5 ביצועים — יעדים
 
