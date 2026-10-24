@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/shell/placeholder-page";
+import { ClientsView } from "@/components/business/clients-view";
 
 export default function Page() {
-  return <PlaceholderPage title="לקוחות" milestone="M4" />;
+  return <ClientsView />;
 }

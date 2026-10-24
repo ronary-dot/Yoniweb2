@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { fieldClass } from "@/components/ui/styles";
 import { clearAllData, loadDemoData } from "@/lib/demo/actions";
+import { amountToInput, parseAmount } from "@/lib/format";
 import { MODES } from "@/lib/modes";
 import { useAppStore, useHasHydrated } from "@/lib/store/app-store";
 import type { Workspace } from "@/lib/types";
@@ -80,6 +81,23 @@ function WorkspaceCard({ workspace }: { workspace: Workspace }) {
             ))}
           </select>
         </label>
+        {workspace.mode === "business" && (
+          <label className="flex flex-col gap-1.5 sm:col-span-2">
+            <span className="text-sm text-fg-muted">סף בטיחות לתזרים (התראה כשהתחזית יורדת מתחתיו)</span>
+            <input
+              dir="ltr"
+              inputMode="decimal"
+              placeholder="₪"
+              key={workspace.safetyThreshold ?? "none"}
+              defaultValue={workspace.safetyThreshold ? amountToInput(workspace.safetyThreshold) : ""}
+              onBlur={(e) => {
+                const value = e.target.value.trim();
+                updateWorkspace(workspace.id, { safetyThreshold: value ? (parseAmount(value) ?? undefined) : undefined });
+              }}
+              className={`${fieldClass} text-end tabular-nums sm:max-w-48`}
+            />
+          </label>
+        )}
       </div>
     </Card>
   );

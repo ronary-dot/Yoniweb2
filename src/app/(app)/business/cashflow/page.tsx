@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/shell/placeholder-page";
+import { CashflowView } from "@/components/business/cashflow-view";
 
 export default function Page() {
-  return <PlaceholderPage title="תזרים" milestone="M4" />;
+  return <CashflowView />;
 }

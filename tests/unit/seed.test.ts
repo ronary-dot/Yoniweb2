@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { WORKSPACE_ID } from "@/lib/defaults";
 import { spendingByCategory } from "@/lib/domain/budgets";
+import { forecast, lowestPoint } from "@/lib/domain/cashflow";
 import { cycleFor } from "@/lib/domain/period";
 import { toISODate } from "@/lib/format";
 import {
@@ -71,25 +72,12 @@ describe.each(days)("createDemoData(%s)", (today) => {
   });
 
   it("forecasts business cash dipping near, but not below, the safety threshold", () => {
-    const business = data.transactions
-      .filter((t) => t.workspaceId === WORKSPACE_ID.business)
-      .sort((a, b) => a.date.localeCompare(b.date));
-    let balance = 0;
-    let min = Infinity;
-    let minDate = "";
-    const horizon = addDays(today, 90);
-    for (const t of business) {
-      balance += t.kind === "income" ? t.amount : -t.amount;
-      if (t.date > todayISO && t.date <= horizon && balance < min) {
-        min = balance;
-        minDate = t.date;
-      }
-    }
-    expect(min).toBeGreaterThanOrEqual(DEMO_SAFETY_THRESHOLD);
-    expect(min).toBeLessThan(DEMO_SAFETY_THRESHOLD + 6_000_00);
+    const low = lowestPoint(forecast(data.transactions, WORKSPACE_ID.business, todayISO, { pastDays: 0, days: 90 }))!;
+    expect(low.balance).toBeGreaterThanOrEqual(DEMO_SAFETY_THRESHOLD);
+    expect(low.balance).toBeLessThan(DEMO_SAFETY_THRESHOLD + 6_000_00);
     // The dip lands on the VAT payment or within the two weeks after it.
-    expect(minDate >= addDays(today, DEMO_LOW_POINT_DAYS)).toBe(true);
-    expect(minDate <= addDays(today, DEMO_LOW_POINT_DAYS + 14)).toBe(true);
+    expect(low.date >= addDays(today, DEMO_LOW_POINT_DAYS)).toBe(true);
+    expect(low.date <= addDays(today, DEMO_LOW_POINT_DAYS + 14)).toBe(true);
   });
 });
 
@@ -101,15 +89,7 @@ describe("createDemoData across a whole year", () => {
       const todayISO = toISODate(today);
       const data = createDemoData(today);
 
-      let balance = 0;
-      let min = Infinity;
-      const horizon = addDays(today, 90);
-      for (const t of data.transactions
-        .filter((t) => t.workspaceId === WORKSPACE_ID.business)
-        .sort((a, b) => a.date.localeCompare(b.date))) {
-        balance += t.kind === "income" ? t.amount : -t.amount;
-        if (t.date > todayISO && t.date <= horizon) min = Math.min(min, balance);
-      }
+      const min = lowestPoint(forecast(data.transactions, WORKSPACE_ID.business, todayISO, { pastDays: 0, days: 90 }))!.balance;
       if (min < DEMO_SAFETY_THRESHOLD || min >= DEMO_SAFETY_THRESHOLD + 6_000_00) {
         failures.push(`${todayISO}: forecast min ${min / 100}`);
       }

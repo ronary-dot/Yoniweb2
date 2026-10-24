@@ -3,6 +3,7 @@
 
 import { createEmptyData, WORKSPACE_ID } from "@/lib/defaults";
 import { paymentDates } from "@/lib/domain/activities";
+import { forecast } from "@/lib/domain/cashflow";
 import { cycleFor } from "@/lib/domain/period";
 import { toISODate } from "@/lib/format";
 import type {
@@ -266,7 +267,8 @@ export function createDemoData(today: Date): AppData {
         invoiceId: invoice.id,
         paymentMethod: "transfer",
       });
-    } else if (dueOffset > 0) {
+    } else {
+      // Still owed: expected on the due date (a past date for the late client).
       add("business", "income", "client-revenue", invoice.amount, invoice.dueAt, {
         note: `${client.name} · חשבונית ${invoice.number}`,
         invoiceId: invoice.id,
@@ -302,17 +304,13 @@ export function createDemoData(today: Date): AppData {
   // Shape the forecast so it dips close to the safety threshold ~7 weeks out:
   // a VAT payment on that day, sized so the lowest projected balance from
   // then until the end of the 90-day horizon sits just above the threshold.
+  // Uses the same forecast as the cash-flow screen.
   const lowPoint = day(DEMO_LOW_POINT_DAYS);
-  const horizon = day(90);
-  const business = transactions
-    .filter((t) => t.workspaceId === WORKSPACE_ID.business && t.date <= horizon)
-    .sort((a, b) => a.date.localeCompare(b.date));
-  let running = 0;
-  let lowest = Infinity;
-  for (const t of business) {
-    running += t.kind === "income" ? t.amount : -t.amount;
-    if (t.date >= lowPoint) lowest = Math.min(lowest, running);
-  }
+  const lowest = Math.min(
+    ...forecast(transactions, WORKSPACE_ID.business, todayISO, { pastDays: 0, days: 90 })
+      .filter((p) => p.date >= lowPoint)
+      .map((p) => p.projected ?? Infinity),
+  );
   const vat = Math.max(0, lowest - DEMO_SAFETY_THRESHOLD - DEMO_LOW_POINT_MARGIN);
   add("business", "expense", "taxes", Math.floor(vat / 100_00) * 100_00, lowPoint, {
     note: "תשלום מע״מ דו-חודשי",

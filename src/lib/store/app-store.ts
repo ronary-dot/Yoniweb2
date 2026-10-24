@@ -6,14 +6,29 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { createEmptyData, DATA_VERSION, WORKSPACE_ID } from "@/lib/defaults";
 import { createDemoData } from "@/lib/demo/seed";
 import { paymentDates } from "@/lib/domain/activities";
+import { invoiceOpen } from "@/lib/domain/invoices";
 import { settleDue } from "@/lib/domain/settle";
 import { toISODate } from "@/lib/format";
-import type { Activity, AppData, Category, Goal, Mode, Money, ShoppingList, Transaction, Workspace } from "@/lib/types";
+import type {
+  Activity,
+  AppData,
+  Category,
+  Client,
+  Goal,
+  Invoice,
+  Mode,
+  Money,
+  ShoppingList,
+  Transaction,
+  Workspace,
+} from "@/lib/types";
 
 export type TransactionInput = Omit<Transaction, "id" | "createdAt">;
 export type CategoryInput = Omit<Category, "id" | "archived">;
 export type ActivityInput = Omit<Activity, "id">;
 export type GoalInput = Omit<Goal, "id" | "contributions">;
+export type ClientInput = Omit<Client, "id">;
+export type InvoiceInput = Omit<Invoice, "id" | "payments">;
 
 /** How far ahead activity fees are scheduled as expected transactions. */
 const ACTIVITY_HORIZON_MONTHS = 3;
@@ -27,7 +42,7 @@ interface AppState extends AppData {
   loadDemo: () => void;
   startEmpty: () => void;
   clearData: () => void;
-  updateWorkspace: (id: string, patch: Partial<Pick<Workspace, "name" | "cycleStartDay">>) => void;
+  updateWorkspace: (id: string, patch: Partial<Pick<Workspace, "name" | "cycleStartDay" | "safetyThreshold">>) => void;
 
   addTransaction: (input: TransactionInput) => Transaction;
   updateTransaction: (id: string, patch: Partial<TransactionInput>) => void;
@@ -58,6 +73,43 @@ interface AppState extends AppData {
   updateGoal: (id: string, input: GoalInput) => void;
   deleteGoal: (id: string) => void;
   contributeToGoal: (id: string, amount: Money) => void;
+
+  addClient: (input: ClientInput) => string;
+  updateClient: (id: string, input: ClientInput) => void;
+  deleteClient: (id: string) => void;
+  addInvoice: (input: InvoiceInput) => void;
+  updateInvoice: (id: string, input: InvoiceInput) => void;
+  deleteInvoice: (id: string) => void;
+  /** Records money received: an actual income now, the rest still expected. */
+  recordInvoicePayment: (id: string, amount: Money, date: string) => void;
+}
+
+/**
+ * Keeps an invoice's still-owed amount as one expected income on its due
+ * date, which is what the cash-flow forecast reads. Payments already
+ * received are separate actual transactions.
+ */
+function withInvoiceSchedule(transactions: Transaction[], invoice: Invoice | null, invoiceId: string, client?: Client) {
+  const kept = transactions.filter((t) => !(t.invoiceId === invoiceId && t.status === "expected"));
+  if (!invoice) return kept;
+  const open = invoiceOpen(invoice);
+  if (open === 0) return kept;
+  return [
+    ...kept,
+    {
+      id: crypto.randomUUID(),
+      workspaceId: WORKSPACE_ID.business,
+      kind: "income" as const,
+      amount: open,
+      categoryId: "business-client-revenue",
+      date: invoice.dueAt,
+      status: "expected" as const,
+      paymentMethod: "transfer" as const,
+      note: `${client?.name ?? "לקוח"} · חשבונית ${invoice.number}`,
+      invoiceId,
+      createdAt: new Date().toISOString(),
+    },
+  ];
 }
 
 /**
@@ -215,6 +267,64 @@ export const useAppStore = create<AppState>()(
       updateGoal: (id, input) =>
         set((s) => ({ goals: s.goals.map((g) => (g.id === id ? { ...g, ...input } : g)) })),
       deleteGoal: (id) => set((s) => ({ goals: s.goals.filter((g) => g.id !== id) })),
+      addClient: (input) => {
+        const id = crypto.randomUUID();
+        set((s) => ({ clients: [...s.clients, { ...input, id }] }));
+        return id;
+      },
+      updateClient: (id, input) =>
+        set((s) => ({ clients: s.clients.map((c) => (c.id === id ? { ...input, id } : c)) })),
+      deleteClient: (id) => set((s) => ({ clients: s.clients.filter((c) => c.id !== id) })),
+      addInvoice: (input) => {
+        const invoice: Invoice = { ...input, id: crypto.randomUUID(), payments: [] };
+        set((s) => ({
+          invoices: [...s.invoices, invoice],
+          transactions: withInvoiceSchedule(s.transactions, invoice, invoice.id, s.clients.find((c) => c.id === invoice.clientId)),
+        }));
+      },
+      updateInvoice: (id, input) =>
+        set((s) => {
+          const existing = s.invoices.find((i) => i.id === id);
+          if (!existing) return {};
+          const invoice: Invoice = { ...existing, ...input };
+          return {
+            invoices: s.invoices.map((i) => (i.id === id ? invoice : i)),
+            transactions: withInvoiceSchedule(s.transactions, invoice, id, s.clients.find((c) => c.id === invoice.clientId)),
+          };
+        }),
+      deleteInvoice: (id) =>
+        set((s) => ({
+          invoices: s.invoices.filter((i) => i.id !== id),
+          transactions: withInvoiceSchedule(s.transactions, null, id),
+        })),
+      recordInvoicePayment: (id, amount, date) =>
+        set((s) => {
+          const existing = s.invoices.find((i) => i.id === id);
+          if (!existing) return {};
+          const client = s.clients.find((c) => c.id === existing.clientId);
+          const payments = [...existing.payments, { date, amount }];
+          const paid = payments.reduce((sum, p) => sum + p.amount, 0);
+          const invoice: Invoice = { ...existing, payments, status: paid >= existing.amount ? "paid" : "partial" };
+          const received: Transaction = {
+            id: crypto.randomUUID(),
+            workspaceId: WORKSPACE_ID.business,
+            kind: "income",
+            amount,
+            categoryId: "business-client-revenue",
+            date,
+            // Payments are recorded once received; the form caps the date at today.
+            status: "actual",
+            paymentMethod: "transfer",
+            note: `${client?.name ?? "לקוח"} · חשבונית ${existing.number}`,
+            invoiceId: id,
+            createdAt: new Date().toISOString(),
+          };
+          return {
+            invoices: s.invoices.map((i) => (i.id === id ? invoice : i)),
+            transactions: withInvoiceSchedule([...s.transactions, received], invoice, id, client),
+          };
+        }),
+
       contributeToGoal: (id, amount) =>
         set((s) => ({
           goals: s.goals.map((g) =>

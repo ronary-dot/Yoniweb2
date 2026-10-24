@@ -4,6 +4,7 @@ import { Inbox, Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { TransactionList } from "@/components/transactions/transaction-list";
+import { BusinessHighlights } from "./business-highlights";
 import { FamilyHighlights } from "./family-highlights";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -174,7 +175,7 @@ function DashboardContent({ mode }: { mode: Mode }) {
         </Card>
       </div>
 
-      {mode === "family" && <FamilyHighlights />}
+      {mode === "family" ? <FamilyHighlights /> : <BusinessHighlights />}
     </>
   );
 }
