@@ -85,41 +85,49 @@
   --font-sans: var(--font-heebo), ui-sans-serif, system-ui, sans-serif;
 }
 
-body {
-  background: var(--bg);
-  color: var(--fg);
-  -webkit-tap-highlight-color: transparent;
+/* Base rules live in a layer so Tailwind utilities can override them. */
+@layer base {
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Native-feel defaults — SPEC §14 */
+  button,
+  a {
+    touch-action: manipulation;
+  }
+
+  button {
+    user-select: none;
+    cursor: pointer;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
 }
 
-/* Native-feel defaults — SPEC §14 */
-button,
-a {
-  touch-action: manipulation;
-}
+/* Press feedback for anything tappable. Owns the element's transition so the
+   press scale and hover colors share one declaration. */
+@layer components {
+  .pressable {
+    transition-property: transform, background-color, color, box-shadow, filter;
+    transition-duration: var(--dur-press);
+    transition-timing-function: var(--ease-out);
+  }
 
-button {
-  user-select: none;
-  cursor: pointer;
-}
-
-input,
-select,
-textarea {
-  font-size: max(16px, 1em);
-}
-
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* Press feedback for anything tappable. */
-.pressable {
-  transition: transform var(--dur-press) var(--ease-out);
-}
-
-.pressable:active {
-  transform: scale(0.97);
+  .pressable:active {
+    transform: scale(0.97);
+  }
 }
 
 /* Content enter after a pointer-initiated mode switch — SPEC §3.2. The blur
@@ -136,7 +144,26 @@ textarea {
   animation: mode-enter var(--dur-base) var(--ease-out);
 }
 
+/* Budget bars fill from the start edge once per page visit, staggered by
+   list position; later value changes transition instead of replaying. */
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.bar-fill {
+  animation: bar-grow 600ms var(--ease-out) backwards;
+  animation-delay: calc(min(var(--i, 0), 8) * 40ms);
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .bar-fill {
+    animation: none;
+    transition: none;
+  }
+
   @keyframes mode-enter-reduced {
     from {
       opacity: 0;

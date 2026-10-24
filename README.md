@@ -14,6 +14,7 @@ npm run dev        # http://localhost:3000
 | `npm run build` | בילד פרודקשן |
 | `npm run typecheck` | בדיקת TypeScript |
 | `npm run lint` | ESLint |
+| `npm test` | בדיקות יחידה (Vitest) ללוגיקה ב-`src/lib/domain` |
 
 ## פריסה
 

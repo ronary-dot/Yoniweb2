@@ -33,7 +33,7 @@ export function ModeSwitch({ mode, onSwitch, instant, compact }: ModeSwitchProps
             aria-checked={active}
             onClick={() => !active && onSwitch(m)}
             className={clsx(
-              "pressable relative flex items-center justify-center gap-1.5 rounded-lg font-medium transition-colors duration-150",
+              "pressable relative flex items-center justify-center gap-1.5 rounded-lg font-medium",
               compact ? "h-8 px-3 text-[13px]" : "h-9 px-3 text-sm",
               active ? "text-fg" : "text-fg-muted hover:text-fg",
             )}

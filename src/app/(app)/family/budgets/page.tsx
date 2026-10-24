@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/shell/placeholder-page";
+import { BudgetsView } from "@/components/budgets/budgets-view";
 
 export default function Page() {
-  return <PlaceholderPage title="תקציבים" milestone="M1" />;
+  return <BudgetsView mode="family" />;
 }

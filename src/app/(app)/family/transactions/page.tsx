@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/shell/placeholder-page";
+import { TransactionsView } from "@/components/transactions/transactions-view";
 
 export default function Page() {
-  return <PlaceholderPage title="תנועות" milestone="M1" />;
+  return <TransactionsView mode="family" />;
 }

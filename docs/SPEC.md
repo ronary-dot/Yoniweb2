@@ -117,7 +117,7 @@
 
 **דסקטופ (≥1024px):** סרגל צד ימני (RTL) ברוחב 248px — מתג מצבים, ניווט, כפתור "+ תנועה חדשה". תוכן ברוחב מקסימלי 1120px.
 
-**מובייל (<768px):** כותרת עליונה עם מתג מצבים קומפקטי; סרגל ניווט תחתון (5 פריטים: דשבורד, תנועות, ➕, יעדים, עוד); כפתור ➕ מרכזי פותח Drawer תחתון (Vaul).
+**מובייל (<768px):** כותרת עליונה עם מתג מצבים קומפקטי; סרגל ניווט תחתון (5 פריטים: דשבורד, תנועות, ➕, יעדים, עוד); כפתור ➕ מרכזי פותח Drawer תחתון (Base UI Drawer).
 
 ### 4.3 פעולות גלובליות
 
@@ -468,7 +468,7 @@ html[data-mode='business'] { --accent: oklch(0.55 0.14 255); }
 | קיצורי מקלדת (`N`, מעבר מצב) | גבוהה | **ללא אנימציה** | — |
 | מתג מצבים (בלחיצה) | כמה פעמים ביום | מצב + רציפות מרחבית | ראה סעיף 3.2 |
 | Dialog הוספת תנועה (דסקטופ) | כמה פעמים ביום | מניעת קפיצה | כניסה `opacity 0→1`, `scale(0.96→1)`, 200ms `--ease-out`, origin במרכז; יציאה 150ms (מהירה מהכניסה) |
-| Drawer הוספת תנועה (מובייל) | כמה פעמים ביום | רציפות מרחבית + מחווה | Vaul: `translateY(100%)→0`, `--ease-drawer` 400ms, swipe-to-dismiss לפי מהירות (>0.11) ולא רק מרחק |
+| Drawer הוספת תנועה (מובייל) | כמה פעמים ביום | רציפות מרחבית + מחווה | Base UI Drawer: `translateY(100%)→0`, `--ease-drawer` 400ms, swipe-to-dismiss לפי מהירות (>0.11) ולא רק מרחק |
 | Popover / Select / תפריט | כמה פעמים ביום | מניעת קפיצה | `scale(0.97→1)` + opacity, 160ms, `transform-origin: var(--transform-origin)` (מהטריגר) |
 | Tooltip | עשרות | עדין | השהיה 400ms לראשון; tooltips צמודים נפתחים מיד ללא אנימציה |
 | Toast (Sonner) | מזדמן | רציפות מרחבית | ברירת המחדל של Sonner — נכנס ויוצא מאותו כיוון |
@@ -499,8 +499,8 @@ html[data-mode='business'] { --accent: oklch(0.55 0.14 255); }
 
 | רכיב | ספרייה | הערות |
 | --- | --- | --- |
-| Dialog, Popover, Select, Menu, Tabs, Switch, Tooltip | **Base UI** | נגישות, focus trap, `--transform-origin` |
-| Drawer תחתון | **Vaul** | הוספת תנועה במובייל |
+| Dialog, Drawer, Popover, Select, Menu, Tabs, Switch, Tooltip | **Base UI** | נגישות, focus trap, `--transform-origin` |
+| Drawer תחתון | **Base UI Drawer** | הוספת תנועה במובייל (Vaul כבר לא מתוחזק) |
 | Toast | **Sonner** | `<Toaster dir="rtl" position="bottom-center" />` |
 | Command palette | **cmdk** | |
 | אנימציות | **motion** | springs, layout, exit |

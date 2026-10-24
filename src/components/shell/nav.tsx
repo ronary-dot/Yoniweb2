@@ -1,6 +1,7 @@
 "use client";
 
 import clsx from "clsx";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { hrefFor, MODES } from "@/lib/modes";
 import type { Mode } from "@/lib/types";
@@ -45,33 +46,46 @@ export function SidebarNav({ mode, pathname }: NavProps) {
   );
 }
 
-export function BottomNav({ mode, pathname }: NavProps) {
+export function BottomNav({ mode, pathname, onAdd }: NavProps & { onAdd: () => void }) {
   const items = MODES[mode].nav.filter((item) => item.primary);
+  const links = items.map(({ segment, label, icon: Icon }) => {
+    const href = hrefFor(mode, segment);
+    const active = isActive(pathname, href, segment === "");
+    return (
+      <li key={segment}>
+        <Link
+          href={href}
+          aria-current={active ? "page" : undefined}
+          className={clsx(
+            "pressable flex h-14 flex-col items-center justify-center gap-0.5 text-[11px]",
+            active ? "font-medium text-accent" : "text-fg-muted",
+          )}
+        >
+          <Icon aria-hidden strokeWidth={1.75} className="size-5" />
+          {label}
+        </Link>
+      </li>
+    );
+  });
+
   return (
     <nav
       aria-label="ניווט ראשי"
       className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
     >
-      <ul className="grid grid-cols-4">
-        {items.map(({ segment, label, icon: Icon }) => {
-          const href = hrefFor(mode, segment);
-          const active = isActive(pathname, href, segment === "");
-          return (
-            <li key={segment}>
-              <Link
-                href={href}
-                aria-current={active ? "page" : undefined}
-                className={clsx(
-                  "pressable flex h-14 flex-col items-center justify-center gap-0.5 text-[11px] transition-colors duration-150",
-                  active ? "font-medium text-accent" : "text-fg-muted",
-                )}
-              >
-                <Icon aria-hidden strokeWidth={1.75} className="size-5" />
-                {label}
-              </Link>
-            </li>
-          );
-        })}
+      <ul className="grid grid-cols-5">
+        {links.slice(0, 2)}
+        <li className="grid place-items-center">
+          <button
+            type="button"
+            aria-label="תנועה חדשה"
+            onClick={onAdd}
+            className="pressable grid size-11 place-items-center rounded-full bg-accent text-white shadow-[0_4px_12px_-2px_var(--accent)]"
+          >
+            <Plus aria-hidden strokeWidth={2} className="size-5" />
+          </button>
+        </li>
+        {links.slice(2)}
       </ul>
     </nav>
   );
