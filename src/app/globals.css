@@ -1,0 +1,296 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens — docs/SPEC.md §10.2 */
+:root {
+  /* Custom curves; the built-in CSS easings are too weak. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --dur-press: 140ms;
+  --dur-fast: 180ms;
+  --dur-base: 220ms;
+  --dur-slow: 300ms;
+
+  --bg: oklch(0.985 0.002 260);
+  --surface: oklch(1 0 0);
+  --fg: oklch(0.21 0.01 260);
+  --fg-muted: oklch(0.52 0.012 260);
+  --border: oklch(0.21 0.01 260 / 0.08);
+  --hover: oklch(0.21 0.01 260 / 0.04);
+  --shadow-card:
+    0 0 0 1px var(--border), 0 1px 2px oklch(0 0 0 / 0.04),
+    0 4px 12px oklch(0 0 0 / 0.04);
+
+  --positive: oklch(0.52 0.13 155);
+  --warning: oklch(0.56 0.13 60);
+  --negative: oklch(0.56 0.17 25);
+
+  --accent: oklch(0.52 0.11 160);
+  --accent-soft: oklch(0.52 0.11 160 / 0.1);
+
+  /* Text on accent fills. */
+  --on-accent: #fff;
+
+  /* Chart series — reference palette slots 1–2, validated (dataviz skill). */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+}
+
+/* Dark tokens follow the theme class set by next-themes (system, light or dark). */
+.dark {
+  --bg: oklch(0.17 0.006 260);
+  --surface: oklch(0.21 0.007 260);
+  --fg: oklch(0.96 0.003 260);
+  --fg-muted: oklch(0.7 0.01 260);
+  --border: oklch(1 0 0 / 0.08);
+  --hover: oklch(1 0 0 / 0.05);
+  /* Raised surfaces get lighter instead of relying on shadows. */
+  --shadow-card: 0 0 0 1px var(--border);
+
+  --positive: oklch(0.72 0.14 155);
+  --warning: oklch(0.78 0.13 70);
+  --negative: oklch(0.7 0.16 25);
+
+  --accent: oklch(0.74 0.12 160);
+  --accent-soft: oklch(0.74 0.12 160 / 0.14);
+
+  --on-accent: oklch(0.17 0.006 260);
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+}
+
+[data-mode="family"] {
+  --accent: oklch(0.52 0.11 160);
+  --accent-soft: oklch(0.52 0.11 160 / 0.1);
+}
+
+[data-mode="business"] {
+  --accent: oklch(0.52 0.15 255);
+  --accent-soft: oklch(0.52 0.15 255 / 0.1);
+}
+
+.dark [data-mode="family"],
+.dark[data-mode="family"] {
+  --accent: oklch(0.74 0.12 160);
+  --accent-soft: oklch(0.74 0.12 160 / 0.14);
+}
+
+.dark [data-mode="business"],
+.dark[data-mode="business"] {
+  --accent: oklch(0.72 0.13 255);
+  --accent-soft: oklch(0.72 0.13 255 / 0.14);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-border: var(--border);
+  --color-hover: var(--hover);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-positive: var(--positive);
+  --color-warning: var(--warning);
+  --color-negative: var(--negative);
+  --shadow-card: var(--shadow-card);
+  --font-sans: var(--font-heebo), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Base rules live in a layer so Tailwind utilities can override them. */
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
+  /* Native-feel baseline — SPEC §14, mobile-native skill. */
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior: none;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    overscroll-behavior: none;
+  }
+
+  /* Native-feel defaults — SPEC §14 */
+  button,
+  a {
+    touch-action: manipulation;
+  }
+
+  /* Controls aren't content: no long-press selection or callout. */
+  button,
+  [role="button"],
+  [role="radio"],
+  [role="checkbox"] {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    cursor: pointer;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+/* Press feedback for anything tappable. Owns the element's transition so the
+   press scale and hover colors share one declaration. */
+@layer components {
+  .pressable {
+    transition-property: transform, background-color, color, box-shadow, filter;
+    transition-duration: var(--dur-press);
+    transition-timing-function: var(--ease-out);
+  }
+
+  .pressable:active {
+    transform: scale(0.97);
+  }
+}
+
+/* Content enter after a pointer-initiated mode switch — SPEC §3.2. The blur
+   bridges old and new content so the eye reads one change, not two. */
+@keyframes mode-enter {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+    transform: translateY(4px);
+  }
+}
+
+.mode-enter {
+  animation: mode-enter var(--dur-base) var(--ease-out);
+}
+
+/* Budget bars fill from the start edge once per page visit, staggered by
+   list position; later value changes transition instead of replaying. */
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.bar-fill {
+  animation: bar-grow 600ms var(--ease-out) backwards;
+  animation-delay: calc(min(var(--i, 0), 8) * 40ms);
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+
+/* Mode switch pill — SPEC §3.2. Strong ease-out, no overshoot. */
+.mode-pill {
+  transition: transform 300ms var(--ease-out);
+}
+
+.mode-pill[data-instant] {
+  transition-duration: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-pill {
+    transition-duration: 0ms;
+  }
+}
+
+/* Command palette group headings (cmdk renders the element). */
+[cmdk-group-heading] {
+  padding: 0.5rem 0.75rem 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--fg-muted);
+}
+
+/* Goal rings draw in once and close smoothly as contributions land. */
+@keyframes ring-draw {
+  from {
+    stroke-dashoffset: var(--circumference);
+  }
+}
+
+.ring-fill {
+  animation: ring-draw 700ms var(--ease-out) backwards;
+  transition: stroke-dashoffset 600ms var(--ease-out), stroke 200ms ease;
+}
+
+/* Shopping items: the strike draws across from the start edge when checked. */
+.strike {
+  position: relative;
+}
+
+.strike::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 55%;
+  height: 1.5px;
+  background: currentColor;
+  clip-path: inset(0 0 0 100%);
+  transition: clip-path 180ms var(--ease-out);
+}
+
+[data-done] > .strike::after {
+  clip-path: inset(0 0 0 0);
+}
+
+/* First-run welcome: seen once, so a gentle staggered rise is earned. */
+@keyframes welcome-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.welcome-enter {
+  animation: welcome-enter 500ms var(--ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring-fill {
+    animation: none;
+    transition: none;
+  }
+
+  .welcome-enter {
+    animation-name: mode-enter-reduced;
+    animation-duration: 200ms;
+  }
+
+  .bar-fill {
+    animation: none;
+    transition: none;
+  }
+
+  @keyframes mode-enter-reduced {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .mode-enter {
+    animation: mode-enter-reduced 150ms ease;
+  }
+
+  .pressable:active {
+    transform: none;
+  }
+}
