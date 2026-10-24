@@ -158,7 +158,25 @@
   transition: transform var(--dur-slow) var(--ease-out);
 }
 
+/* First-run welcome: seen once, so a gentle staggered rise is earned. */
+@keyframes welcome-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.welcome-enter {
+  animation: welcome-enter 500ms var(--ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .welcome-enter {
+    animation-name: mode-enter-reduced;
+    animation-duration: 200ms;
+  }
+
   .bar-fill {
     animation: none;
     transition: none;

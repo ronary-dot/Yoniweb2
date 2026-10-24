@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Heebo } from "next/font/google";
 import { Toaster } from "sonner";
+import { StoreHydrator } from "@/lib/store/app-store";
 import "./globals.css";
 
 const heebo = Heebo({
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="he" dir="rtl" className={`${heebo.variable} h-full antialiased`}>
       <body className="min-h-full font-sans">
+        <StoreHydrator />
         {children}
         <Toaster
           dir="rtl"

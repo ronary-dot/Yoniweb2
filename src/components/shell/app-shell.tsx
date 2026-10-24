@@ -1,7 +1,8 @@
 "use client";
 
 import clsx from "clsx";
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { TransactionSheet } from "@/components/transactions/transaction-sheet";
@@ -10,8 +11,9 @@ import { MODES, modeFromPathname, switchModeHref } from "@/lib/modes";
 import { useAppStore } from "@/lib/store/app-store";
 import { useTransactionSheet } from "@/lib/store/ui-store";
 import type { Mode } from "@/lib/types";
+import { DemoBanner } from "./demo-banner";
 import { ModeSwitch } from "./mode-switch";
-import { BottomNav, SidebarNav } from "./nav";
+import { BottomNav, SettingsLink, SidebarNav } from "./nav";
 
 type SwitchSource = "pointer" | "keyboard";
 
@@ -29,21 +31,23 @@ function isTypingTarget(target: EventTarget | null): boolean {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const mode = modeFromPathname(pathname) ?? "family";
+  const pathMode = modeFromPathname(pathname);
+  const lastMode = useAppStore((s) => s.lastMode);
+  // Pages outside a mode (settings) keep the mode the person came from.
+  const mode = pathMode ?? lastMode;
   const setLastMode = useAppStore((s) => s.setLastMode);
   const openNew = useTransactionSheet((s) => s.openNew);
   const [lastSwitch, setLastSwitch] = useState<{ to: Mode; via: SwitchSource } | null>(null);
 
   useEffect(() => {
-    useAppStore.persist.rehydrate();
-  }, []);
+    if (pathMode) setLastMode(pathMode);
+  }, [pathMode, setLastMode]);
 
   useEffect(() => {
-    setLastMode(mode);
     // Portaled surfaces (sheets, toasts) sit outside the shell; mirror the
     // mode on <html> so they pick up the right accent.
     document.documentElement.dataset.mode = mode;
-  }, [mode, setLastMode]);
+  }, [mode]);
 
   const switchTo = useCallback(
     (target: Mode, via: SwitchSource) => {
@@ -88,18 +92,31 @@ export function AppShell({ children }: { children: ReactNode }) {
           <kbd className="ms-auto rounded bg-white/20 px-1.5 font-sans text-xs">N</kbd>
         </Button>
         <SidebarNav mode={mode} pathname={pathname} />
-        <p className="mt-auto px-2.5 text-xs text-fg-muted">
-          <kbd className="font-sans">Ctrl .</kbd> למעבר בין מצבים
-        </p>
+        <div className="mt-auto flex flex-col gap-3">
+          <SettingsLink pathname={pathname} />
+          <p className="px-2.5 text-xs text-fg-muted">
+            <kbd className="font-sans">Ctrl .</kbd> למעבר בין מצבים
+          </p>
+        </div>
       </aside>
 
       <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-bg/90 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md md:hidden">
         <div className="flex h-14 items-center text-[15px] font-semibold tracking-tight">Yoniweb2</div>
-        <ModeSwitch mode={mode} onSwitch={onSwitch} instant={instant} compact />
+        <div className="flex items-center gap-1">
+          <ModeSwitch mode={mode} onSwitch={onSwitch} instant={instant} compact />
+          <Link
+            href="/settings"
+            aria-label="הגדרות"
+            className="pressable grid size-9 place-items-center rounded-lg text-fg-muted hover:bg-hover hover:text-fg"
+          >
+            <Settings aria-hidden strokeWidth={1.75} className="size-[18px]" />
+          </Link>
+        </div>
       </header>
 
       <main className="min-w-0 flex-1 px-4 pt-6 pb-[calc(5rem+env(safe-area-inset-bottom))] md:px-10 md:pt-10 md:pb-10">
         <div key={mode} className={clsx("mx-auto max-w-[1120px]", animateEnter && "mode-enter")}>
+          <DemoBanner />
           {children}
         </div>
       </main>

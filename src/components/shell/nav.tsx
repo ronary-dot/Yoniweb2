@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import Link from "next/link";
 import { hrefFor, MODES } from "@/lib/modes";
 import type { Mode } from "@/lib/types";
@@ -43,6 +43,23 @@ export function SidebarNav({ mode, pathname }: NavProps) {
         );
       })}
     </nav>
+  );
+}
+
+export function SettingsLink({ pathname }: { pathname: string }) {
+  const active = pathname === "/settings";
+  return (
+    <Link
+      href="/settings"
+      aria-current={active ? "page" : undefined}
+      className={clsx(
+        "flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors duration-150",
+        active ? "bg-accent-soft font-medium text-fg" : "text-fg-muted hover:bg-hover hover:text-fg",
+      )}
+    >
+      <Settings aria-hidden strokeWidth={1.75} className={clsx("size-[18px]", active && "text-accent")} />
+      הגדרות
+    </Link>
   );
 }
 

@@ -1,6 +1,6 @@
 import type { AppData, Category, Mode, Workspace } from "./types";
 
-export const DATA_VERSION = 1;
+export const DATA_VERSION = 2;
 
 export const WORKSPACE_ID: Record<Mode, string> = {
   family: "ws-family",
@@ -29,6 +29,7 @@ const familyCategories: CategorySeed[] = [
   ["subscriptions", "מנויים", "Repeat"],
   ["misc", "שונות", "Ellipsis"],
   ["salary", "משכורת", "Wallet", "income"],
+  ["business-draw", "משיכה מהעסק", "Briefcase", "income"],
   ["other-income", "הכנסה אחרת", "Plus", "income"],
 ];
 
@@ -43,6 +44,7 @@ const businessCategories: CategorySeed[] = [
   ["insurance", "ביטוח", "Shield"],
   ["fees", "עמלות בנק וסליקה", "Landmark"],
   ["taxes", "מסים ואגרות", "Receipt"],
+  ["owner-draw", "משיכת בעלים", "Wallet"],
   ["misc", "שונות", "Ellipsis"],
   ["client-revenue", "הכנסות מלקוחות", "Briefcase", "income"],
   ["other-income", "הכנסה אחרת", "Plus", "income"],

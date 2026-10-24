@@ -1,6 +1,6 @@
 "use client";
 
-import { Inbox, Plus } from "lucide-react";
+import { Inbox, Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { TransactionList } from "@/components/transactions/transaction-list";
@@ -15,6 +15,7 @@ import { WORKSPACE_ID } from "@/lib/defaults";
 import { budgetStatus, spendingByCategory, totalsFor } from "@/lib/domain/budgets";
 import { cycleLabel, daysLeft } from "@/lib/domain/period";
 import { hrefFor } from "@/lib/modes";
+import { loadDemoData } from "@/lib/demo/actions";
 import { useAppStore, useHasHydrated } from "@/lib/store/app-store";
 import { useTransactionSheet } from "@/lib/store/ui-store";
 import type { Mode } from "@/lib/types";
@@ -73,17 +74,24 @@ function DashboardContent({ mode }: { mode: Mode }) {
   }, [transactions, categories, workspaceId, cycle]);
 
   const left = daysLeft(new Date(), cycle);
-  const perDay = left > 0 && totals.balance > 0 ? Math.floor(totals.balance / left / 100) * 100 : null;
+  // A daily allowance is a household idea; a business reads cash flow instead.
+  const perDay = mode === "family" && left > 0 && totals.balance > 0 ? Math.floor(totals.balance / left / 100) * 100 : null;
   const maxTop = top[0]?.amount ?? 0;
 
   if (!hasAny) {
     return (
       <EmptyState icon={Inbox} title="אין עדיין תנועות">
         <p>הוסיפו הוצאה או הכנסה, וכאן תופיע תמונת המצב של המחזור.</p>
-        <Button variant="primary" size="sm" className="mt-4" onClick={() => openNew()}>
-          <Plus aria-hidden className="size-4" />
-          תנועה חדשה
-        </Button>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <Button variant="primary" size="sm" onClick={() => openNew()}>
+            <Plus aria-hidden className="size-4" />
+            תנועה חדשה
+          </Button>
+          <Button size="sm" onClick={loadDemoData}>
+            <Sparkles aria-hidden className="size-4" />
+            טען נתוני דמו
+          </Button>
+        </div>
       </EmptyState>
     );
   }

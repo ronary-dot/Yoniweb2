@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { Inbox, Plus, Search } from "lucide-react";
+import { Inbox, Plus, Search, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CycleNav } from "@/components/ui/cycle-nav";
@@ -10,6 +10,7 @@ import { Money } from "@/components/ui/money";
 import { useCycle } from "@/hooks/use-cycle";
 import { WORKSPACE_ID } from "@/lib/defaults";
 import { inCycle } from "@/lib/domain/period";
+import { loadDemoData } from "@/lib/demo/actions";
 import { useAppStore, useHasHydrated } from "@/lib/store/app-store";
 import { useTransactionSheet } from "@/lib/store/ui-store";
 import type { Mode, Transaction } from "@/lib/types";
@@ -148,10 +149,16 @@ function TransactionsContent({ mode }: { mode: Mode }) {
       ) : !hasAny ? (
         <EmptyState icon={Inbox} title="אין עדיין תנועות">
           <p>הוסיפו את ההוצאה או ההכנסה הראשונה.</p>
-          <Button variant="primary" size="sm" className="mt-4" onClick={() => openNew()}>
-            <Plus aria-hidden className="size-4" />
-            תנועה חדשה
-          </Button>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <Button variant="primary" size="sm" onClick={() => openNew()}>
+              <Plus aria-hidden className="size-4" />
+              תנועה חדשה
+            </Button>
+            <Button size="sm" onClick={loadDemoData}>
+              <Sparkles aria-hidden className="size-4" />
+              טען נתוני דמו
+            </Button>
+          </div>
         </EmptyState>
       ) : (
         <EmptyState icon={Search} title={isFiltering ? "אין תנועות שמתאימות לסינון" : "אין תנועות במחזור הזה"} />
