@@ -4,6 +4,8 @@ import clsx from "clsx";
 import { type FormEvent, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CategoryGlyph } from "@/components/ui/category-icon";
+import { Segmented } from "@/components/ui/segmented";
+import { fieldClass } from "@/components/ui/styles";
 import { WORKSPACE_ID } from "@/lib/defaults";
 import { recentCategoryIds } from "@/lib/domain/budgets";
 import { amountToInput, parseAmount, toISODate } from "@/lib/format";
@@ -17,9 +19,6 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
   { value: "app", label: "ביט / פייבוקס" },
   { value: "standing_order", label: "הוראת קבע" },
 ];
-
-const fieldClass =
-  "h-11 w-full rounded-[10px] bg-hover px-3 text-fg outline-none transition-shadow duration-150 placeholder:text-fg-muted focus:shadow-[0_0_0_2px_var(--accent)]";
 
 interface TransactionFormProps {
   mode: Mode;
@@ -85,23 +84,15 @@ export function TransactionForm({ mode, transaction, onSaved, onDelete }: Transa
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-      <div role="radiogroup" aria-label="סוג" className="grid grid-cols-2 rounded-[10px] bg-hover p-0.5">
-        {(["expense", "income"] as const).map((k) => (
-          <button
-            key={k}
-            type="button"
-            role="radio"
-            aria-checked={kind === k}
-            onClick={() => onKindChange(k)}
-            className={clsx(
-              "h-9 rounded-lg text-sm font-medium transition-[background-color,color,box-shadow] duration-150",
-              kind === k ? "bg-surface text-fg shadow-card" : "text-fg-muted",
-            )}
-          >
-            {k === "expense" ? "הוצאה" : "הכנסה"}
-          </button>
-        ))}
-      </div>
+      <Segmented
+        label="סוג"
+        value={kind}
+        onChange={onKindChange}
+        options={[
+          { value: "expense", label: "הוצאה" },
+          { value: "income", label: "הכנסה" },
+        ]}
+      />
 
       <label className="block">
         <span className="sr-only">סכום</span>

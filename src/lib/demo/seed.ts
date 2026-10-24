@@ -2,6 +2,7 @@
 // every date placed relative to `today` so the demo always looks current.
 
 import { createEmptyData, WORKSPACE_ID } from "@/lib/defaults";
+import { paymentDates } from "@/lib/domain/activities";
 import { cycleFor } from "@/lib/domain/period";
 import { toISODate } from "@/lib/format";
 import type {
@@ -169,17 +170,9 @@ export function createDemoData(today: Date): AppData {
     { id: id("act"), member: "מאיה", name: "התעמלות", provider: "מתנ״ס השכונה", cost: 1_500_00, frequency: "semester", schedule: [{ weekday: 4, time: "16:00" }] },
   ];
   data.activities = activities;
-  for (let m = -MONTHS_BACK; m <= MONTHS_AHEAD; m++) {
-    for (const a of activities) {
-      const month = new Date(today.getFullYear(), today.getMonth() + m, 1).getMonth();
-      const due = a.frequency === "monthly" || (a.frequency === "semester" && (month === 8 || month === 1));
-      if (due) {
-        add("family", "expense", "activities", a.cost, inMonth(m, 10), {
-          note: `${a.name} – ${a.member}`,
-          activityId: a.id,
-          ...card,
-        });
-      }
+  for (const a of activities) {
+    for (const date of paymentDates(a, inMonth(-MONTHS_BACK, 1), inMonth(MONTHS_AHEAD + 1, 0))) {
+      add("family", "expense", "activities", a.cost, date, { note: `${a.name} – ${a.member}`, activityId: a.id, ...card });
     }
   }
 

@@ -4,13 +4,11 @@ import { Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { fieldClass } from "@/components/ui/styles";
 import { clearAllData, loadDemoData } from "@/lib/demo/actions";
 import { MODES } from "@/lib/modes";
 import { useAppStore, useHasHydrated } from "@/lib/store/app-store";
 import type { Workspace } from "@/lib/types";
-
-const fieldClass =
-  "h-10 w-full rounded-[10px] bg-hover px-3 text-fg outline-none transition-shadow duration-150 focus:shadow-[0_0_0_2px_var(--accent)]";
 
 export function SettingsView() {
   const hydrated = useHasHydrated();

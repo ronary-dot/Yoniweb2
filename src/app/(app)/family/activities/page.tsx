@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/shell/placeholder-page";
+import { ActivitiesView } from "@/components/activities/activities-view";
 
 export default function Page() {
-  return <PlaceholderPage title="חוגים" milestone="M3" />;
+  return <ActivitiesView />;
 }

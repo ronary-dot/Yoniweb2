@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/shell/placeholder-page";
+import { ShoppingView } from "@/components/shopping/shopping-view";
 
 export default function Page() {
-  return <PlaceholderPage title="קניות" milestone="M3" />;
+  return <ShoppingView />;
 }

@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/shell/placeholder-page";
+import { GoalsView } from "@/components/goals/goals-view";
 
 export default function Page() {
-  return <PlaceholderPage title="יעדים" milestone="M3" />;
+  return <GoalsView mode="family" />;
 }

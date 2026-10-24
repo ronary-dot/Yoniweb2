@@ -1,12 +1,12 @@
 "use client";
 
-import clsx from "clsx";
 import { Inbox, Plus, Search, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CycleNav } from "@/components/ui/cycle-nav";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Money } from "@/components/ui/money";
+import { Segmented } from "@/components/ui/segmented";
 import { useCycle } from "@/hooks/use-cycle";
 import { WORKSPACE_ID } from "@/lib/defaults";
 import { inCycle } from "@/lib/domain/period";
@@ -110,23 +110,7 @@ function TransactionsContent({ mode }: { mode: Mode }) {
             className="h-10 w-full rounded-[10px] bg-surface ps-9 pe-3 shadow-card outline-none placeholder:text-fg-muted focus:shadow-[0_0_0_2px_var(--accent)]"
           />
         </label>
-        <div role="radiogroup" aria-label="סוג" className="flex rounded-[10px] bg-hover p-0.5">
-          {KIND_FILTERS.map((f) => (
-            <button
-              key={f.value}
-              type="button"
-              role="radio"
-              aria-checked={kind === f.value}
-              onClick={() => setKind(f.value)}
-              className={clsx(
-                "h-9 rounded-lg px-3 text-sm",
-                kind === f.value ? "bg-surface font-medium text-fg shadow-card" : "text-fg-muted",
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        <Segmented label="סוג" value={kind} onChange={setKind} options={KIND_FILTERS} />
         <label>
           <span className="sr-only">קטגוריה</span>
           <select

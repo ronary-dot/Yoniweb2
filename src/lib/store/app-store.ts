@@ -3,12 +3,20 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { createEmptyData, DATA_VERSION } from "@/lib/defaults";
+import { createEmptyData, DATA_VERSION, WORKSPACE_ID } from "@/lib/defaults";
 import { createDemoData } from "@/lib/demo/seed";
-import type { AppData, Category, Mode, Transaction, Workspace } from "@/lib/types";
+import { paymentDates } from "@/lib/domain/activities";
+import { settleDue } from "@/lib/domain/settle";
+import { toISODate } from "@/lib/format";
+import type { Activity, AppData, Category, Goal, Mode, Money, ShoppingList, Transaction, Workspace } from "@/lib/types";
 
 export type TransactionInput = Omit<Transaction, "id" | "createdAt">;
 export type CategoryInput = Omit<Category, "id" | "archived">;
+export type ActivityInput = Omit<Activity, "id">;
+export type GoalInput = Omit<Goal, "id" | "contributions">;
+
+/** How far ahead activity fees are scheduled as expected transactions. */
+const ACTIVITY_HORIZON_MONTHS = 3;
 
 interface AppState extends AppData {
   lastMode: Mode;
@@ -29,6 +37,59 @@ interface AppState extends AppData {
 
   addCategory: (input: CategoryInput) => Category;
   updateCategory: (id: string, patch: Partial<Omit<Category, "id" | "workspaceId">>) => void;
+
+  /** Marks expected transactions whose date has arrived as actual. */
+  settle: () => void;
+
+  addActivity: (input: ActivityInput) => void;
+  updateActivity: (id: string, input: ActivityInput) => void;
+  deleteActivity: (id: string) => void;
+
+  addShoppingList: (name: string) => string;
+  renameShoppingList: (id: string, name: string) => void;
+  deleteShoppingList: (id: string) => void;
+  addShoppingItem: (listId: string, label: string) => void;
+  toggleShoppingItem: (listId: string, itemId: string) => void;
+  removeShoppingItem: (listId: string, itemId: string) => void;
+  /** Records the trip as a grocery expense and clears the checked items. */
+  checkoutShoppingList: (listId: string, amount: Money) => void;
+
+  addGoal: (input: GoalInput) => void;
+  updateGoal: (id: string, input: GoalInput) => void;
+  deleteGoal: (id: string) => void;
+  contributeToGoal: (id: string, amount: Money) => void;
+}
+
+/**
+ * Replaces an activity's future fees with a fresh schedule. Past payments are
+ * history and stay as they were.
+ */
+function withActivitySchedule(transactions: Transaction[], activity: Activity | null, activityId: string) {
+  const today = new Date();
+  const tomorrow = toISODate(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1));
+  const kept = transactions.filter((t) => !(t.activityId === activityId && t.status === "expected"));
+  if (!activity) return kept;
+  const until = toISODate(new Date(today.getFullYear(), today.getMonth() + ACTIVITY_HORIZON_MONTHS + 1, 0));
+  const scheduled = paymentDates(activity, tomorrow, until).map(
+    (date): Transaction => ({
+      id: crypto.randomUUID(),
+      workspaceId: WORKSPACE_ID.family,
+      kind: "expense",
+      amount: activity.cost,
+      categoryId: "family-activities",
+      date,
+      status: "expected",
+      paymentMethod: "card",
+      note: `${activity.name} – ${activity.member}`,
+      activityId,
+      createdAt: new Date().toISOString(),
+    }),
+  );
+  return [...kept, ...scheduled];
+}
+
+function mapList(lists: ShoppingList[], id: string, fn: (list: ShoppingList) => ShoppingList) {
+  return lists.map((l) => (l.id === id ? fn(l) : l));
 }
 
 export const useAppStore = create<AppState>()(
@@ -74,6 +135,91 @@ export const useAppStore = create<AppState>()(
       updateCategory: (id, patch) =>
         set((s) => ({
           categories: s.categories.map((c) => (c.id === id ? { ...c, ...patch } : c)),
+        })),
+
+      settle: () =>
+        set((s) => {
+          const transactions = settleDue(s.transactions, toISODate(new Date()));
+          return transactions === s.transactions ? {} : { transactions };
+        }),
+
+      addActivity: (input) => {
+        const activity: Activity = { ...input, id: crypto.randomUUID() };
+        set((s) => ({
+          activities: [...s.activities, activity],
+          transactions: withActivitySchedule(s.transactions, activity, activity.id),
+        }));
+      },
+      updateActivity: (id, input) => {
+        const activity: Activity = { ...input, id };
+        set((s) => ({
+          activities: s.activities.map((a) => (a.id === id ? activity : a)),
+          transactions: withActivitySchedule(s.transactions, activity, id),
+        }));
+      },
+      deleteActivity: (id) =>
+        set((s) => ({
+          activities: s.activities.filter((a) => a.id !== id),
+          transactions: withActivitySchedule(s.transactions, null, id),
+        })),
+
+      addShoppingList: (name) => {
+        const id = crypto.randomUUID();
+        set((s) => ({ shoppingLists: [...s.shoppingLists, { id, name, items: [] }] }));
+        return id;
+      },
+      renameShoppingList: (id, name) =>
+        set((s) => ({ shoppingLists: mapList(s.shoppingLists, id, (l) => ({ ...l, name })) })),
+      deleteShoppingList: (id) => set((s) => ({ shoppingLists: s.shoppingLists.filter((l) => l.id !== id) })),
+      addShoppingItem: (listId, label) =>
+        set((s) => ({
+          shoppingLists: mapList(s.shoppingLists, listId, (l) => ({
+            ...l,
+            items: [...l.items, { id: crypto.randomUUID(), label, done: false }],
+          })),
+        })),
+      toggleShoppingItem: (listId, itemId) =>
+        set((s) => ({
+          shoppingLists: mapList(s.shoppingLists, listId, (l) => ({
+            ...l,
+            items: l.items.map((i) => (i.id === itemId ? { ...i, done: !i.done } : i)),
+          })),
+        })),
+      removeShoppingItem: (listId, itemId) =>
+        set((s) => ({
+          shoppingLists: mapList(s.shoppingLists, listId, (l) => ({
+            ...l,
+            items: l.items.filter((i) => i.id !== itemId),
+          })),
+        })),
+      checkoutShoppingList: (listId, amount) => {
+        const list = get().shoppingLists.find((l) => l.id === listId);
+        if (!list) return;
+        get().addTransaction({
+          workspaceId: WORKSPACE_ID.family,
+          kind: "expense",
+          amount,
+          categoryId: "family-groceries",
+          date: toISODate(new Date()),
+          status: "actual",
+          paymentMethod: "card",
+          note: list.name,
+        });
+        set((s) => ({
+          shoppingLists: mapList(s.shoppingLists, listId, (l) => ({ ...l, items: l.items.filter((i) => !i.done) })),
+        }));
+      },
+
+      addGoal: (input) =>
+        set((s) => ({ goals: [...s.goals, { ...input, id: crypto.randomUUID(), contributions: [] }] })),
+      updateGoal: (id, input) =>
+        set((s) => ({ goals: s.goals.map((g) => (g.id === id ? { ...g, ...input } : g)) })),
+      deleteGoal: (id) => set((s) => ({ goals: s.goals.filter((g) => g.id !== id) })),
+      contributeToGoal: (id, amount) =>
+        set((s) => ({
+          goals: s.goals.map((g) =>
+            g.id === id ? { ...g, contributions: [...g.contributions, { date: toISODate(new Date()), amount }] } : g,
+          ),
         })),
     }),
     {
@@ -123,7 +269,7 @@ export function snapshotData(): AppData {
 
 export function StoreHydrator() {
   useEffect(() => {
-    useAppStore.persist.rehydrate();
+    void Promise.resolve(useAppStore.persist.rehydrate()).then(() => useAppStore.getState().settle());
   }, []);
   return null;
 }

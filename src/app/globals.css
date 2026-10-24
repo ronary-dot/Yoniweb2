@@ -158,6 +158,38 @@
   transition: transform var(--dur-slow) var(--ease-out);
 }
 
+/* Goal rings draw in once and close smoothly as contributions land. */
+@keyframes ring-draw {
+  from {
+    stroke-dashoffset: var(--circumference);
+  }
+}
+
+.ring-fill {
+  animation: ring-draw 700ms var(--ease-out) backwards;
+  transition: stroke-dashoffset 600ms var(--ease-out), stroke 200ms ease;
+}
+
+/* Shopping items: the strike draws across from the start edge when checked. */
+.strike {
+  position: relative;
+}
+
+.strike::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 55%;
+  height: 1.5px;
+  background: currentColor;
+  clip-path: inset(0 0 0 100%);
+  transition: clip-path 180ms var(--ease-out);
+}
+
+[data-done] > .strike::after {
+  clip-path: inset(0 0 0 0);
+}
+
 /* First-run welcome: seen once, so a gentle staggered rise is earned. */
 @keyframes welcome-enter {
   from {
@@ -172,6 +204,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ring-fill {
+    animation: none;
+    transition: none;
+  }
+
   .welcome-enter {
     animation-name: mode-enter-reduced;
     animation-duration: 200ms;

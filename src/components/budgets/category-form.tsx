@@ -3,13 +3,12 @@
 import clsx from "clsx";
 import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Segmented } from "@/components/ui/segmented";
+import { fieldClass } from "@/components/ui/styles";
 import { CATEGORY_ICONS } from "@/lib/category-icons";
 import { amountToInput, parseAmount } from "@/lib/format";
 import { useAppStore } from "@/lib/store/app-store";
 import type { Category } from "@/lib/types";
-
-const fieldClass =
-  "h-11 w-full rounded-[10px] bg-hover px-3 text-fg outline-none transition-shadow duration-150 placeholder:text-fg-muted focus:shadow-[0_0_0_2px_var(--accent)]";
 
 interface CategoryFormProps {
   workspaceId: string;
@@ -52,23 +51,15 @@ export function CategoryForm({ workspaceId, category, onDone }: CategoryFormProp
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       {!category && (
-        <div role="radiogroup" aria-label="סוג" className="grid grid-cols-2 rounded-[10px] bg-hover p-0.5">
-          {(["expense", "income"] as const).map((k) => (
-            <button
-              key={k}
-              type="button"
-              role="radio"
-              aria-checked={kind === k}
-              onClick={() => setKind(k)}
-              className={clsx(
-                "h-9 rounded-lg text-sm font-medium",
-                kind === k ? "bg-surface text-fg shadow-card" : "text-fg-muted",
-              )}
-            >
-              {k === "expense" ? "הוצאה" : "הכנסה"}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          label="סוג"
+          value={kind}
+          onChange={setKind}
+          options={[
+            { value: "expense", label: "הוצאה" },
+            { value: "income", label: "הכנסה" },
+          ]}
+        />
       )}
 
       <label className="flex flex-col gap-1.5">
