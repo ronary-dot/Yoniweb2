@@ -2,7 +2,7 @@ import clsx from "clsx";
 import type { ComponentProps } from "react";
 
 const variants = {
-  primary: "bg-accent text-white hover:brightness-105",
+  primary: "bg-accent text-on-accent hover:brightness-105",
   secondary: "bg-surface text-fg shadow-card hover:bg-hover",
   ghost: "text-fg-muted hover:bg-hover hover:text-fg",
   danger: "text-negative hover:bg-negative/10",

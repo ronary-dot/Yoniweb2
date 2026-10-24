@@ -39,8 +39,12 @@ export function TransactionRow({ transaction, category }: { transaction: Transac
       >
         <CategoryIcon icon={category?.icon ?? "Tag"} />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium">{category?.name ?? "ללא קטגוריה"}</span>
-          {meta && <span className="block truncate text-xs text-fg-muted">{meta}</span>}
+          <span className="block min-w-0 truncate text-sm font-medium">{category?.name ?? "ללא קטגוריה"}</span>
+          {meta && (
+            <span dir="auto" className="block min-w-0 truncate text-right text-xs text-fg-muted">
+              {meta}
+            </span>
+          )}
         </span>
         <Money
           value={signed}

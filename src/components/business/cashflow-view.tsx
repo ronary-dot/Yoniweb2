@@ -90,19 +90,19 @@ function CashflowContent() {
         <Card>
           <p className="text-sm text-fg-muted">מזומן זמין היום</p>
           <p className="mt-1 text-2xl font-semibold tracking-tight">
-            <Money value={cash} />
+            <Money animated value={cash} />
           </p>
         </Card>
         <Card>
           <p className="text-sm text-fg-muted">צפוי בעוד {days} יום</p>
           <p className="mt-1 text-2xl font-semibold tracking-tight">
-            <Money value={points.at(-1)?.projected ?? cash} />
+            <Money animated value={points.at(-1)?.projected ?? cash} />
           </p>
         </Card>
         <Card>
           <p className="text-sm text-fg-muted">הנקודה הנמוכה</p>
           <p className="mt-1 text-2xl font-semibold tracking-tight">
-            {low && <Money value={low.balance} className={clsx(belowThreshold && "text-negative")} />}
+            {low && <Money animated value={low.balance} className={clsx(belowThreshold && "text-negative")} />}
           </p>
           {low && <p className="text-xs text-fg-muted">{dayMonth.format(parseISO(low.date))}</p>}
         </Card>
@@ -166,7 +166,7 @@ function CashflowContent() {
               <li key={t.id} className="flex items-center gap-3 rounded-xl px-2 py-2.5">
                 <span className="w-14 shrink-0 text-xs text-fg-muted tabular-nums">{shortDay.format(parseISO(t.date))}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm">{t.note ?? categoryName.get(t.categoryId)}</span>
+                  <span className="block min-w-0 truncate text-sm">{t.note ?? categoryName.get(t.categoryId)}</span>
                   {isPostponed && <span className="block text-xs text-warning">נדחה ב-30 יום</span>}
                 </span>
                 <Money

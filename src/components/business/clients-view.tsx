@@ -145,8 +145,8 @@ function ClientList({ onShow }: { onShow: (s: SheetState) => void }) {
               {client.name.slice(0, 1)}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium">{client.name}</span>
-              <span className="block truncate text-xs text-fg-muted">
+              <span className="block min-w-0 truncate text-sm font-medium">{client.name}</span>
+              <span className="block min-w-0 truncate text-xs text-fg-muted">
                 {[client.contact, client.paymentTermsDays ? `שוטף + ${client.paymentTermsDays}` : "מיידי", `${invoiceCount} חשבוניות`]
                   .filter(Boolean)
                   .join(" · ")}
@@ -187,7 +187,7 @@ function InvoiceList({ onShow }: { onShow: (s: SheetState) => void }) {
             >
               <span className="w-12 shrink-0 text-xs text-fg-muted tabular-nums">#{invoice.number}</span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium">{names.get(invoice.clientId) ?? "לקוח"}</span>
+                <span className="block min-w-0 truncate text-sm font-medium">{names.get(invoice.clientId) ?? "לקוח"}</span>
                 <span className="block text-xs text-fg-muted">לתשלום עד {formatISO(invoice.dueAt)}</span>
               </span>
               <span className="shrink-0 text-end">

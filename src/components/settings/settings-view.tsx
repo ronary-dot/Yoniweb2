@@ -1,9 +1,11 @@
 "use client";
 
 import { Sparkles, Trash2 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { Segmented } from "@/components/ui/segmented";
 import { fieldClass } from "@/components/ui/styles";
 import { clearAllData, loadDemoData } from "@/lib/demo/actions";
 import { amountToInput, parseAmount } from "@/lib/format";
@@ -21,6 +23,7 @@ export function SettingsView() {
       <PageHeader title="הגדרות" />
       {hydrated && (
         <div className="flex flex-col gap-4">
+          <AppearanceCard />
           {workspaces.map((w) => (
             <WorkspaceCard key={w.id} workspace={w} />
           ))}
@@ -99,6 +102,28 @@ function WorkspaceCard({ workspace }: { workspace: Workspace }) {
           </label>
         )}
       </div>
+    </Card>
+  );
+}
+
+const THEMES = [
+  { value: "system", label: "לפי המערכת" },
+  { value: "light", label: "בהיר" },
+  { value: "dark", label: "כהה" },
+] as const;
+
+function AppearanceCard() {
+  const { theme = "system", setTheme } = useTheme();
+  return (
+    <Card>
+      <h2 className="text-[15px] font-medium">תצוגה</h2>
+      <Segmented
+        label="ערכת צבעים"
+        value={theme as (typeof THEMES)[number]["value"]}
+        onChange={setTheme}
+        options={THEMES}
+        className="mt-4 w-full sm:w-fit"
+      />
     </Card>
   );
 }

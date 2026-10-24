@@ -85,7 +85,7 @@ export function FamilyHighlights() {
                     <span aria-hidden className="text-sm">{g.emoji}</span>
                   </ProgressRing>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium">{g.name}</span>
+                    <span className="block min-w-0 truncate text-sm font-medium">{g.name}</span>
                     <span className="block text-xs text-fg-muted">
                       <Money value={p.saved} /> מתוך <Money value={g.target} />
                     </span>
@@ -111,7 +111,7 @@ export function FamilyHighlights() {
           <ul className="flex flex-col gap-2.5 text-sm">
             {thisWeek.slice(0, 5).map(({ a, s, inDays }) => (
               <li key={`${a.id}-${s.weekday}`} className="flex items-baseline justify-between gap-2">
-                <span className="truncate">
+                <span className="min-w-0 truncate">
                   {a.name} <span className="text-fg-muted">· {a.member}</span>
                 </span>
                 <span className="shrink-0 text-xs text-fg-muted tabular-nums">

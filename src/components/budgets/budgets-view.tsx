@@ -113,7 +113,7 @@ function BudgetsContent({ mode, onEdit }: { mode: Mode; onEdit: (category: Categ
           return (
             <CategoryRow key={c.id} category={c} onClick={() => onEdit(c)}>
               <span className="flex items-baseline justify-between gap-2 text-sm">
-                <span className="truncate font-medium">{c.name}</span>
+                <span className="min-w-0 truncate font-medium">{c.name}</span>
                 <span className="shrink-0 text-fg-muted">
                   <Money value={spent} className={status === "over" ? "text-negative" : "text-fg"} />
                   {c.monthlyBudget ? (
@@ -138,7 +138,7 @@ function BudgetsContent({ mode, onEdit }: { mode: Mode; onEdit: (category: Categ
         {income.map((c) => (
           <CategoryRow key={c.id} category={c} onClick={() => onEdit(c)}>
             <span className="flex items-baseline justify-between gap-2 text-sm">
-              <span className="truncate font-medium">{c.name}</span>
+              <span className="min-w-0 truncate font-medium">{c.name}</span>
               <Money value={totals.get(c.id) ?? 0} className="shrink-0 text-positive" />
             </span>
           </CategoryRow>
@@ -149,7 +149,7 @@ function BudgetsContent({ mode, onEdit }: { mode: Mode; onEdit: (category: Categ
         <CategorySection title="בארכיון">
           {archived.map((c) => (
             <CategoryRow key={c.id} category={c} onClick={() => onEdit(c)}>
-              <span className="truncate text-sm text-fg-muted">{c.name}</span>
+              <span className="min-w-0 truncate text-sm text-fg-muted">{c.name}</span>
             </CategoryRow>
           ))}
         </CategorySection>

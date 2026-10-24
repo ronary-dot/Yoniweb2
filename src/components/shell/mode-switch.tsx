@@ -1,7 +1,6 @@
 "use client";
 
 import clsx from "clsx";
-import { motion, useReducedMotion } from "motion/react";
 import { MODE_ORDER, MODES } from "@/lib/modes";
 import type { Mode } from "@/lib/types";
 
@@ -13,15 +12,23 @@ interface ModeSwitchProps {
   compact?: boolean;
 }
 
+/**
+ * The pill slides with a CSS transform transition rather than a JS spring:
+ * just as interruptible, runs off the main thread while the next page loads,
+ * and keeps an animation library out of the shell's first load.
+ */
 export function ModeSwitch({ mode, onSwitch, instant, compact }: ModeSwitchProps) {
-  const reduceMotion = useReducedMotion();
+  const index = MODE_ORDER.indexOf(mode);
 
   return (
-    <div
-      role="radiogroup"
-      aria-label="מצב"
-      className="relative grid grid-cols-2 rounded-[10px] bg-hover p-0.5"
-    >
+    <div role="radiogroup" aria-label="מצב" className="relative grid grid-cols-2 rounded-[10px] bg-hover p-0.5">
+      <span
+        aria-hidden
+        data-instant={instant || undefined}
+        className="mode-pill absolute inset-y-0.5 start-0.5 w-[calc(50%-2px)] rounded-lg bg-surface shadow-card"
+        // RTL: the first option sits on the right, so later options move left.
+        style={{ transform: `translateX(${index * -100}%)` }}
+      />
       {MODE_ORDER.map((m) => {
         const { label, icon: Icon } = MODES[m];
         const active = m === mode;
@@ -38,18 +45,6 @@ export function ModeSwitch({ mode, onSwitch, instant, compact }: ModeSwitchProps
               active ? "text-fg" : "text-fg-muted hover:text-fg",
             )}
           >
-            {active && (
-              <motion.span
-                layoutId={compact ? "mode-pill-compact" : "mode-pill"}
-                aria-hidden
-                className="absolute inset-0 rounded-lg bg-surface shadow-card"
-                transition={
-                  instant || reduceMotion
-                    ? { duration: 0 }
-                    : { type: "spring", duration: 0.35, bounce: 0 }
-                }
-              />
-            )}
             <Icon
               aria-hidden
               strokeWidth={1.75}

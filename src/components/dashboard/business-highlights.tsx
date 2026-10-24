@@ -84,7 +84,7 @@ export function BusinessHighlights() {
             <ul className="flex flex-col gap-2.5 text-sm">
               {owing.map((s) => (
                 <li key={s.client.id} className="flex items-baseline justify-between gap-2">
-                  <span className="truncate">
+                  <span className="min-w-0 truncate">
                     {s.client.name}
                     {s.overdue > 0 && <span className="text-xs text-negative"> · באיחור {s.maxDaysOverdue} ימים</span>}
                   </span>
@@ -105,7 +105,7 @@ export function BusinessHighlights() {
                 const [ty, tm, td] = t.date.split("-").map(Number);
                 return (
                   <li key={t.id} className="flex items-baseline justify-between gap-2">
-                    <span className="truncate">
+                    <span className="min-w-0 truncate">
                       <span className="text-xs text-fg-muted tabular-nums">{shortDay.format(new Date(ty, tm - 1, td))} · </span>
                       {t.note}
                     </span>

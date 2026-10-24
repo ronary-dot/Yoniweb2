@@ -106,7 +106,7 @@ function DashboardContent({ mode }: { mode: Mode }) {
           <p className="text-xs text-fg-muted">{cycleLabel(cycle)}</p>
         </div>
         <p className="mt-1 text-[clamp(2rem,6vw,2.75rem)] leading-tight font-semibold tracking-tight">
-          <Money value={totals.balance} className={totals.balance < 0 ? "text-negative" : undefined} />
+          <Money animated value={totals.balance} className={totals.balance < 0 ? "text-negative" : undefined} />
         </p>
         <p className="mt-1 text-sm text-fg-muted">
           {left > 0 ? `עוד ${left} ימים במחזור` : "המחזור הסתיים"}
@@ -131,13 +131,13 @@ function DashboardContent({ mode }: { mode: Mode }) {
         <Card>
           <p className="text-sm text-fg-muted">{text.income}</p>
           <p className="mt-1 text-xl font-semibold">
-            <Money value={totals.income} />
+            <Money animated value={totals.income} />
           </p>
         </Card>
         <Card>
           <p className="text-sm text-fg-muted">{text.expense}</p>
           <p className="mt-1 text-xl font-semibold">
-            <Money value={totals.expense} />
+            <Money animated value={totals.expense} />
           </p>
         </Card>
       </div>
@@ -154,7 +154,7 @@ function DashboardContent({ mode }: { mode: Mode }) {
                 return (
                   <li key={category?.id ?? i}>
                     <div className="mb-1.5 flex items-baseline justify-between gap-2 text-sm">
-                      <span className="truncate">{category?.name ?? "ללא קטגוריה"}</span>
+                      <span className="min-w-0 truncate">{category?.name ?? "ללא קטגוריה"}</span>
                       <Money value={amount} className="shrink-0 font-medium" />
                     </div>
                     <ProgressBar

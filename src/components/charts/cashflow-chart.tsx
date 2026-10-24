@@ -23,6 +23,7 @@ function parseISO(iso: string) {
 
 function shortShekels(agorot: number) {
   const shekels = agorot / 100;
+  if (Math.abs(shekels) >= 1_000_000) return `${Math.round(shekels / 100_000) / 10}M`;
   return Math.abs(shekels) >= 1000 ? `${Math.round(shekels / 1000)}K` : String(Math.round(shekels));
 }
 

@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/shell/placeholder-page";
+import { ReportsView } from "@/components/reports/reports-view";
 
 export default function Page() {
-  return <PlaceholderPage title="דוחות" milestone="M5" />;
+  return <ReportsView mode="family" />;
 }

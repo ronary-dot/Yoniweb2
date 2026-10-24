@@ -109,7 +109,7 @@ function GoalCard({ goal, progress, onShow }: { goal: Goal; progress: GoalProgre
         <div className="min-w-0 flex-1">
           <h2 className="flex items-center gap-1.5 font-medium">
             {goal.emoji && <span aria-hidden>{goal.emoji}</span>}
-            <span className="truncate">{goal.name}</span>
+            <span className="min-w-0 truncate">{goal.name}</span>
           </h2>
           <span className={clsx("mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium", statusTone[progress.status])}>
             {goal.type === "revenue" && !achieved ? "החודש" : GOAL_STATUS_LABEL[progress.status]}

@@ -97,7 +97,7 @@ export function BottomNav({ mode, pathname, onAdd }: NavProps & { onAdd: () => v
             type="button"
             aria-label="תנועה חדשה"
             onClick={onAdd}
-            className="pressable grid size-11 place-items-center rounded-full bg-accent text-white shadow-[0_4px_12px_-2px_var(--accent)]"
+            className="pressable grid size-11 place-items-center rounded-full bg-accent text-on-accent shadow-[0_4px_12px_-2px_var(--accent)]"
           >
             <Plus aria-hidden strokeWidth={2} className="size-5" />
           </button>

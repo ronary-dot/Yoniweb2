@@ -1,11 +1,11 @@
 "use client";
 
 import clsx from "clsx";
-import { Plus, Settings } from "lucide-react";
+import { Plus, Search, Settings } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
-import { TransactionSheet } from "@/components/transactions/transaction-sheet";
 import { Button } from "@/components/ui/button";
 import { MODES, modeFromPathname, switchModeHref } from "@/lib/modes";
 import { useAppStore } from "@/lib/store/app-store";
@@ -16,6 +16,14 @@ import { ModeSwitch } from "./mode-switch";
 import { BottomNav, SettingsLink, SidebarNav } from "./nav";
 
 type SwitchSource = "pointer" | "keyboard";
+
+// The sheet and the palette are closed on load, so their code (Base UI,
+// cmdk) stays out of the first paint: mounted on first open, prefetched
+// once the page is idle.
+const loadSheet = () => import("@/components/transactions/transaction-sheet");
+const loadCommandMenu = () => import("./command-menu");
+const TransactionSheet = dynamic(() => loadSheet().then((m) => m.TransactionSheet), { ssr: false });
+const CommandMenu = dynamic(() => loadCommandMenu().then((m) => m.CommandMenu), { ssr: false });
 
 function otherMode(mode: Mode): Mode {
   return mode === "family" ? "business" : "family";
@@ -38,6 +46,25 @@ export function AppShell({ children }: { children: ReactNode }) {
   const setLastMode = useAppStore((s) => s.setLastMode);
   const openNew = useTransactionSheet((s) => s.openNew);
   const [lastSwitch, setLastSwitch] = useState<{ to: Mode; via: SwitchSource } | null>(null);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const sheetOpen = useTransactionSheet((s) => s.open);
+  const [mounted, setMounted] = useState({ sheet: false, command: false });
+  if ((sheetOpen && !mounted.sheet) || (commandOpen && !mounted.command)) {
+    setMounted({ sheet: mounted.sheet || sheetOpen, command: mounted.command || commandOpen });
+  }
+
+  useEffect(() => {
+    const prefetch = () => {
+      void loadSheet();
+      void loadCommandMenu();
+    };
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(prefetch, { timeout: 3000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = setTimeout(prefetch, 1500);
+    return () => clearTimeout(id);
+  }, []);
 
   useEffect(() => {
     if (pathMode) setLastMode(pathMode);
@@ -58,9 +85,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 
   // Keyboard actions are instant, never animated (SPEC §3.2, §11):
-  // ⌘/Ctrl + . switches mode, N opens a new transaction.
+  // ⌘/Ctrl + . switches mode, ⌘/Ctrl + K opens commands, N a new transaction.
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      if (event.code === "KeyK" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        setCommandOpen((open) => !open);
+        return;
+      }
       if (event.key === "." && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
         switchTo(otherMode(mode), "keyboard");
@@ -89,8 +121,17 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Button variant="primary" onClick={() => openNew()} className="justify-start">
           <Plus aria-hidden className="size-4" />
           תנועה חדשה
-          <kbd className="ms-auto rounded bg-white/20 px-1.5 font-sans text-xs">N</kbd>
+          <kbd className="ms-auto rounded bg-on-accent/20 px-1.5 font-sans text-xs">N</kbd>
         </Button>
+        <button
+          type="button"
+          onClick={() => setCommandOpen(true)}
+          className="-mt-3 flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm text-fg-muted transition-colors duration-150 hover:bg-hover hover:text-fg"
+        >
+          <Search aria-hidden strokeWidth={1.75} className="size-[18px]" />
+          חיפוש ופקודות
+          <kbd className="ms-auto font-sans text-xs">Ctrl K</kbd>
+        </button>
         <SidebarNav mode={mode} pathname={pathname} />
         <div className="mt-auto flex flex-col gap-3">
           <SettingsLink pathname={pathname} />
@@ -104,6 +145,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="flex h-14 items-center text-[15px] font-semibold tracking-tight">Yoniweb2</div>
         <div className="flex items-center gap-1">
           <ModeSwitch mode={mode} onSwitch={onSwitch} instant={instant} compact />
+          <button
+            type="button"
+            aria-label="חיפוש ופקודות"
+            onClick={() => setCommandOpen(true)}
+            className="pressable grid size-9 place-items-center rounded-lg text-fg-muted hover:bg-hover hover:text-fg"
+          >
+            <Search aria-hidden strokeWidth={1.75} className="size-[18px]" />
+          </button>
           <Link
             href="/settings"
             aria-label="הגדרות"
@@ -122,7 +171,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       </main>
 
       <BottomNav mode={mode} pathname={pathname} onAdd={() => openNew()} />
-      <TransactionSheet mode={mode} />
+      {mounted.sheet && <TransactionSheet mode={mode} />}
+      {mounted.command && (
+        <CommandMenu open={commandOpen} onOpenChange={setCommandOpen} mode={mode} onSwitchMode={(m) => switchTo(m, "keyboard")} />
+      )}
 
       <p aria-live="polite" className="sr-only">
         {lastSwitch ? `מצב ${MODES[lastSwitch.to].label}` : ""}

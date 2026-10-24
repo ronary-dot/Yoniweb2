@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Design tokens — docs/SPEC.md §10.2 */
 :root {
   /* Custom curves; the built-in CSS easings are too weak. */
@@ -22,34 +24,48 @@
     0 0 0 1px var(--border), 0 1px 2px oklch(0 0 0 / 0.04),
     0 4px 12px oklch(0 0 0 / 0.04);
 
-  --positive: oklch(0.56 0.13 155);
-  --warning: oklch(0.66 0.14 65);
+  --positive: oklch(0.52 0.13 155);
+  --warning: oklch(0.56 0.13 60);
   --negative: oklch(0.56 0.17 25);
 
-  --accent: oklch(0.55 0.11 160);
-  --accent-soft: oklch(0.55 0.11 160 / 0.1);
+  --accent: oklch(0.52 0.11 160);
+  --accent-soft: oklch(0.52 0.11 160 / 0.1);
+
+  /* Text on accent fills. */
+  --on-accent: #fff;
+
+  /* Chart series — reference palette slots 1–2, validated (dataviz skill). */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: oklch(0.17 0.006 260);
-    --surface: oklch(0.21 0.007 260);
-    --fg: oklch(0.96 0.003 260);
-    --fg-muted: oklch(0.7 0.01 260);
-    --border: oklch(1 0 0 / 0.08);
-    --hover: oklch(1 0 0 / 0.05);
-    /* Raised surfaces get lighter instead of relying on shadows. */
-    --shadow-card: 0 0 0 1px var(--border);
+/* Dark tokens follow the theme class set by next-themes (system, light or dark). */
+.dark {
+  --bg: oklch(0.17 0.006 260);
+  --surface: oklch(0.21 0.007 260);
+  --fg: oklch(0.96 0.003 260);
+  --fg-muted: oklch(0.7 0.01 260);
+  --border: oklch(1 0 0 / 0.08);
+  --hover: oklch(1 0 0 / 0.05);
+  /* Raised surfaces get lighter instead of relying on shadows. */
+  --shadow-card: 0 0 0 1px var(--border);
 
-    --positive: oklch(0.72 0.14 155);
-    --warning: oklch(0.78 0.13 70);
-    --negative: oklch(0.7 0.16 25);
-  }
+  --positive: oklch(0.72 0.14 155);
+  --warning: oklch(0.78 0.13 70);
+  --negative: oklch(0.7 0.16 25);
+
+  --accent: oklch(0.74 0.12 160);
+  --accent-soft: oklch(0.74 0.12 160 / 0.14);
+
+  --on-accent: oklch(0.17 0.006 260);
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
 }
 
 [data-mode="family"] {
-  --accent: oklch(0.55 0.11 160);
-  --accent-soft: oklch(0.55 0.11 160 / 0.1);
+  --accent: oklch(0.52 0.11 160);
+  --accent-soft: oklch(0.52 0.11 160 / 0.1);
 }
 
 [data-mode="business"] {
@@ -57,16 +73,16 @@
   --accent-soft: oklch(0.52 0.15 255 / 0.1);
 }
 
-@media (prefers-color-scheme: dark) {
-  [data-mode="family"] {
-    --accent: oklch(0.74 0.12 160);
-    --accent-soft: oklch(0.74 0.12 160 / 0.14);
-  }
+.dark [data-mode="family"],
+.dark[data-mode="family"] {
+  --accent: oklch(0.74 0.12 160);
+  --accent-soft: oklch(0.74 0.12 160 / 0.14);
+}
 
-  [data-mode="business"] {
-    --accent: oklch(0.72 0.13 255);
-    --accent-soft: oklch(0.72 0.13 255 / 0.14);
-  }
+.dark [data-mode="business"],
+.dark[data-mode="business"] {
+  --accent: oklch(0.72 0.13 255);
+  --accent-soft: oklch(0.72 0.13 255 / 0.14);
 }
 
 @theme inline {
@@ -78,6 +94,7 @@
   --color-hover: var(--hover);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
   --color-positive: var(--positive);
   --color-warning: var(--warning);
   --color-negative: var(--negative);
@@ -87,10 +104,25 @@
 
 /* Base rules live in a layer so Tailwind utilities can override them. */
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
+  /* Native-feel baseline — SPEC §14, mobile-native skill. */
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior: none;
+  }
+
   body {
     background: var(--bg);
     color: var(--fg);
-    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
   }
 
   /* Native-feel defaults — SPEC §14 */
@@ -99,8 +131,14 @@
     touch-action: manipulation;
   }
 
-  button {
+  /* Controls aren't content: no long-press selection or callout. */
+  button,
+  [role="button"],
+  [role="radio"],
+  [role="checkbox"] {
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
     cursor: pointer;
   }
 
@@ -156,6 +194,29 @@
   animation: bar-grow 600ms var(--ease-out) backwards;
   animation-delay: calc(min(var(--i, 0), 8) * 40ms);
   transition: transform var(--dur-slow) var(--ease-out);
+}
+
+/* Mode switch pill — SPEC §3.2. Strong ease-out, no overshoot. */
+.mode-pill {
+  transition: transform 300ms var(--ease-out);
+}
+
+.mode-pill[data-instant] {
+  transition-duration: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-pill {
+    transition-duration: 0ms;
+  }
+}
+
+/* Command palette group headings (cmdk renders the element). */
+[cmdk-group-heading] {
+  padding: 0.5rem 0.75rem 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--fg-muted);
 }
 
 /* Goal rings draw in once and close smoothly as contributions land. */

@@ -159,7 +159,7 @@ function ListCard({ list, onDeleted }: { list: ShoppingList; onDeleted: () => vo
                   aria-hidden
                   className={clsx(
                     "grid size-5 shrink-0 place-items-center rounded-md border transition-colors duration-150",
-                    item.done ? "border-accent bg-accent text-white" : "border-fg/25",
+                    item.done ? "border-accent bg-accent text-on-accent" : "border-fg/25",
                   )}
                 >
                   {item.done && <Check strokeWidth={3} className="size-3.5" />}

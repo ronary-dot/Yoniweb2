@@ -105,8 +105,8 @@ function ActivitiesContent({ onEdit }: { onEdit: (a: Activity) => void }) {
                       className="flex w-full items-center gap-3 rounded-xl px-2 py-3 text-start transition-colors duration-150 hover:bg-hover"
                     >
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium">{a.name}</span>
-                        <span className="block truncate text-xs text-fg-muted">
+                        <span className="block min-w-0 truncate text-sm font-medium">{a.name}</span>
+                        <span className="block min-w-0 truncate text-xs text-fg-muted">
                           {[a.provider, a.schedule?.length ? a.schedule.map((s) => `${WEEKDAYS_SHORT[s.weekday]} ${s.time}`).join(", ") : null]
                             .filter(Boolean)
                             .join(" · ")}
@@ -221,7 +221,7 @@ function ActivityForm({ activity, onDone }: { activity?: Activity; onDone: () =>
               onClick={() => toggleDay(d)}
               className={clsx(
                 "pressable grid size-9 place-items-center rounded-full text-sm",
-                days.includes(d) ? "bg-accent text-white" : "bg-hover text-fg-muted hover:text-fg",
+                days.includes(d) ? "bg-accent text-on-accent" : "bg-hover text-fg-muted hover:text-fg",
               )}
             >
               {label}
